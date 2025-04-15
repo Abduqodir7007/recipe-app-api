@@ -1,5 +1,3 @@
-'''
-
 
 from unittest.mock import patch
 from psycopg2 import OperationalError as Psycopg2Error
@@ -13,19 +11,12 @@ class CommandTests(SimpleTestCase):
     def test_wait_for_db_ready(self,patched_check):
         patched_check.return_value = True
         call_command('wait_for_db')
-        patched_check.assert_called_once_with(database='default')'''
+        patched_check.assert_called_once_with(databases=['default'])
         
-from unittest.mock import patch
-from django.core.management import call_command
-from django.test import SimpleTestCase
-
-
-class CommandTests(SimpleTestCase):
-    """Test wait_for_db command."""
-
-    @patch('django.db.utils.ConnectionHandler.__getitem__')
-    def test_wait_for_db_ready(self, mock_getitem):
-        """Test waiting for db when db is available."""
-        mock_getitem.return_value = True
+    @patch('time.sleep')
+    def test_wait_for_db_delay(self,patched_sleep,patched_check):
+        patched_check.side_effect = [Psycopg2Error]*2 + \
+            [OperationalError]*3 +[True]
         call_command('wait_for_db')
-        mock_getitem.assert_called_with('default')
+        self.assertEqual(patched_check.call_count,6)
+        patched_check.assert_called_with(databases=['default'])
