@@ -9,9 +9,12 @@ services:
     volumes:
       - ./app:/app
     command: >
-      sh -c "python manage.py runserver 0.0.0.0:8080"
+      sh -c "python manage.py wait_for_db &&
+             python manage.py migrate &&
+             python manage.py runserver  0.0.0.0:8080"
+
     environment:
-      - DB_HOST=db_data
+      - DB_HOST=db
       - DB_NAME=dev_db
       - DB_USER=dev_user
       - DB_PASSWORD=abduqodir7007
